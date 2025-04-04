@@ -7,23 +7,18 @@ import time
 import json
 import os
 
-# ========================================================================
 QDRANT_URL = 'http://localhost:6333'
 COLLECTION_NAME = 'mbBazar'
 VECTOR_SIZE = 1024
 BATCH_SIZE = 100
 EMBEDDING_DELAY_SECONDS = 5
-# ========================================================================
 
-# TODO: create a single instance of this to be shared with all other rags
 embeddings = HuggingFaceBgeEmbeddings(
     model_name="BAAI/bge-large-en",
     model_kwargs={'device': 'cpu'},
     encode_kwargs={'normalize_embeddings': False}
 )
 
-
-# create collection if it doesn't already exist
 def create_collection():
     client = QdrantClient(
         url=QDRANT_URL, prefer_grpc=False
@@ -47,8 +42,6 @@ def create_collection():
     client.close()
 
 
-# load embeddings into collection with custom metadata
-# use batches to prevent file descriptor error
 def load_embeddings_custom_metadata(texts: list[str], metadata: list[dict]):
     client = QdrantClient(
         url=QDRANT_URL, prefer_grpc=False
@@ -57,7 +50,6 @@ def load_embeddings_custom_metadata(texts: list[str], metadata: list[dict]):
     text_embeddings = embeddings.embed_documents(texts)
     print(f'[QDRANT] Vector embeddings created')
 
-    # length of texts and metadata should always be the same, but incase
     min_size = min(len(texts), len(metadata))
     for i in range(32000, min_size, BATCH_SIZE):
         batch_texts = texts[i:i + BATCH_SIZE]
@@ -87,9 +79,6 @@ def load_embeddings_custom_metadata(texts: list[str], metadata: list[dict]):
     client.close()
     print("[QDRANT] Embeddings successfully loaded into collection")
 
-
-# execute a similarity search with the given query 
-# return the id of the top num_matches matches
 def retrieve_relevant_context(query: str, file_text: str, num_matches: int) -> str:
     client = QdrantClient(
         url=QDRANT_URL, prefer_grpc=False
@@ -108,14 +97,6 @@ def retrieve_relevant_context(query: str, file_text: str, num_matches: int) -> s
             #content.append(doc.metadata['id'])
 
     client.close()
-
-
-
-
-
-
-
-
 
     return content
 
@@ -137,12 +118,10 @@ def getJsonDataEmbed2(file_path):
             behaviour_list = vxCube.get("behaviour", [])
             yara_rules = item.get("yara_rules", [])
             triage = vendor_intel.get("Triage", {})
-
-            # Build the text for the current item
-            #text_parts = []
+            
             part_text = ""
 
-            # Extract each description in behaviour and append to text_parts
+    
             for behaviour in behaviour_list:
                 description = behaviour.get("rule", "")
                 #text_parts.append(f"Behaviour description: {description}")
@@ -160,27 +139,6 @@ def getJsonDataEmbed2(file_path):
                 signature_text = signature.get("signature", "")
                 #text_parts.append(f"Signature: {signature_text}")
                 part_text += f"Signature: {signature_text}"
-
-            # Join all text parts for this item
-            #textStr = "\n".join(text_parts)
-            
-            # Build metadata for the current item
-            #metadata_parts = [
-            #    f"SHA256 Hash: {item.get('sha256_hash', '')}",
-            #    f"SHA3-384 Hash: {item.get('sha3_384_hash', '')}",
-            #    f"SHA1 Hash: {item.get('sha1_hash', '')}",
-            #    f"MD5 Hash: {item.get('md5_hash', '')}",
-            #    f"First Seen: {item.get('first_seen', '')}",
-            #    f"Last Seen: {item.get('last_seen', '')}",
-            #    f"File Name: {item.get('file_name', '')}",
-            #    f"File Size: {item.get('file_size', '')}",
-            #    f"File Type MIME: {item.get('file_type_mime', '')}",
-            #    f"File Type: {item.get('file_type', '')}",
-            #    f"Origin Country: {item.get('origin_country', '')}",
-            #    f"IMPHASH: {item.get('imphash', '')}",
-            #    f"TLSH: {item.get('tlsh', '')}",
-            #    f"Delivery Method: {item.get('delivery_method', '')}",
-            #]
 
             all_metadata.append({
                  'sha256_hash': item.get('sha256_hash', ''),
@@ -207,11 +165,7 @@ def getJsonDataEmbed2(file_path):
 
             # Append to the lists
             all_texts.append(part_text)
-            #all_metadata.append(metadata_str)
-
-    # Join all texts and metadata into single strings
-    #all_texts_str = "\n\n".join(all_texts)
-    #all_metadata_str = "\n\n".join(all_metadata)
+    
 
     return all_texts, all_metadata
 
@@ -219,16 +173,6 @@ def getJsonDataEmbed2(file_path):
 def read_mb_json_(folder_path: str):
     texts = []
     metadata = []
-    
-    # Iterate over each file in the folder
-    #for file_name in os.listdir(folder_path):
-        #file_path = os.path.join(folder_path, file_name)
-    #for _ in range(1):
-    #file_path = "../mbJson/output_json/fee0f58b871e76b2c05829918025390c76203ee7c10a94fd1a4db5478682da9d.json"
-        # Only process JSON files
-        #if file_path.endswith('.json'):
-    #if file_path.endswith('.json'):
-    #if folder_path.endswith('.json'):
 
     # Ensure folder_path is a directory and iterate over each file in the folder
     if os.path.isdir(folder_path):
@@ -300,13 +244,8 @@ def read_mb_json_(folder_path: str):
                 })
 
     print("MARK ::")
-    #print(texts)
-    #print(metadata)
 
     return texts, metadata
-
-
-
 
 if __name__ == "__main__":
 
@@ -315,7 +254,6 @@ if __name__ == "__main__":
 
     create_collection()
 
-    #text, meta = read_mb_json_("../mbJson/output_json")
     text, meta = read_mb_json_("output_json")
 
 
