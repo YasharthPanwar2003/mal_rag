@@ -88,18 +88,6 @@ class Malware_Rag:
         except requests.exceptions.RequestException as err:
             print(f"Other error occurred for hash {hash_number}: {err}")
 
-
-    ###userPDFName = input("Please Enter the name of the pdf that you would like to analyze (please include the .pdf at the end as well).")
-    ###all_text = extract_text_from_pdf(userPDFName)
-
-
-    ###print(all_text)
-
-
-    ###hashes = extract_sha256_hashes(all_text)
-    ###print(hashes)
-
-
     #open json file that was just amde, retrieve all the relevent information and embed it, delete the json file
     def getJsonDataEmbed(self,file_path):
         # Initialize empty strings for combined text and metadata
@@ -145,8 +133,6 @@ class Malware_Rag:
                     #if description:
                         #textStr += f" Description: {description}"
                             textStr += "\n"  # Separate entries for better readability
-
-                # Append signatures from Triage
 
                 
                 
@@ -212,12 +198,11 @@ class Malware_Rag:
                     'content': f'''
 
 
-                                You are a chatbot. Please use the provided data to answer the user's question about a hash file related to malware.
-
-                                Correct Brieif Description about the hashes******************:{dataText}. Correct Hash Metadata***************: {metadata}. 
-                                
+                                You are a cybersecurity chatbot. Analyze the following provided data about a malware hash file to answer the user's question.
+                                Correct Brieif Description about the hashes******************:{dataText}.
+                                Correct Hash Metadata***************: {metadata}
                                 Here are some extra hash's with their relevant data:*************** {relevantChunks}
-
+                                MORE INFORMATION POINTWISE IN DEPTH AND ALSO ANALYZE THIS AND PROVIDE WHAT TYPE OF VULNERABILITY IT MAY BE :
                                 '''
                 },
                 {
@@ -228,21 +213,11 @@ class Malware_Rag:
             ]
     
 
-
-    # Must have Function:
-    # Extract all hashes in user prompt and file
     def get_messages_with_context(self, prompt: str, extra_context: str, num_chunks: int) -> tuple[list[dict[str, str]], list[str]]:
-        #retreive relevant context from qdrant and api
-        # in this function, im passing in the user prompt, and the number of chunks, and possibly the file text (for later)
-        # return relevent context, must be array
-        #relevant_context = [] # self.qdrant_retrieve_something(prompt, num_chunks)
+        
 
         relevant_context = qd.retrieve_relevant_context(prompt,extra_context,num_chunks)
-        
-        # call build messages function (pass it the prompt and the numerb of chunks)
-        #messages = [] 
-
-
+      
         allHashes = set()
 
         promptHashes = self.extract_sha256_hashes(prompt)
